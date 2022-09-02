@@ -31,6 +31,7 @@ void ImageViewer::onResize()
 
 void ImageViewer::render(const bool focused) const
 {
+    SDL_FillRect(screen.surface, NULL, 0);
     SDL_utils::applyPpuScaledSurface(0, 0, image_.get(), screen.surface);
 }
 
