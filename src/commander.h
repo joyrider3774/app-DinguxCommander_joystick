@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 #include "panel.h"
+#include "sdl_ttf_multifont.h"
 #include "window.h"
 
 class CCommander : public CWindow
@@ -22,19 +23,30 @@ class CCommander : public CWindow
     CCommander(const CCommander &p_source);
     const CCommander &operator =(const CCommander &p_source);
 
+    // Window resized.
+    void onResize() override;
+
     // Key press management
-    virtual const bool keyPress(const SDL_Event &p_event);
+    const bool keyPress(const SDL_Event &p_event) override;
 
     // Key hold management
-    virtual const bool keyHold(void);
+    const bool keyHold(void) override;
+
+    bool mouseDown(int button, int x, int y) override;
+    bool mouseWheel(int dx, int dy) override;
+
+    CPanel* focusPanelAt(int *x, int *y, bool *changed);
 
     // Draw
     virtual void render(const bool p_focus) const;
 
     // Is window full screen?
-    virtual const bool isFullScreen(void) const;
+    virtual bool isFullScreen(void) const;
 
     // Open the file operation menus
+    bool itemMenu() const;
+    bool operationMenu() const;
+
     const bool openCopyMenu(void) const;
     void openExecuteMenu(void) const;
 
@@ -47,7 +59,6 @@ class CCommander : public CWindow
     CPanel* m_panelSource;
     CPanel* m_panelTarget;
 
-    // Pointers to resources
     SDL_Surface *m_background;
 };
 

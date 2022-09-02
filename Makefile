@@ -1,34 +1,73 @@
-ifeq ($(CONFIG),)
-CONFIGS:=$(foreach CFG,$(wildcard config-*.mk),$(CFG:config-%.mk=%))
-$(error Please specify CONFIG, possible values: $(CONFIGS))
+#
+#	DinguxCommander Makefile for MiyooMini
+#
+
+CXX := $(CROSS_COMPILE)g++
+
+PLATFORM ?= $(UNION_PLATFORM)
+ifeq (,$(PLATFORM))
+PLATFORM=linux
 endif
 
-include config-$(CONFIG).mk
-
-RESDIR:=res
-
-CXXFLAGS+=-Wall -Wno-unknown-pragmas -Wno-format
-CXXFLAGS+=$(shell $(SDL_CONFIG) --cflags)
-CXXFLAGS+=-DRESDIR="\"$(RESDIR)\""
-LINKFLAGS+=-s
-LINKFLAGS+=$(shell $(SDL_CONFIG) --libs) -lSDL_image -lSDL_ttf
-
-ifdef V
-	CMD:=
-	SUM:=@\#
+ifeq ($(PLATFORM),miyoomini)
+CXXFLAGS := -Os -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve+simd
 else
-	CMD:=@
-	SUM:=@echo
+CXXFLAGS := -Os
 endif
 
-OUTDIR:=output/$(CONFIG)
+SDL_CONFIG := $(shell $(CXX) -print-sysroot)/usr/bin/sdl-config
+CXXFLAGS += $(shell $(SDL_CONFIG) --cflags)
 
-EXECUTABLE:=$(OUTDIR)/DinguxCommander
+CXXFLAGS += -DPATH_DEFAULT=\"/mnt/SDCARD\"
+CXXFLAGS += -DFILE_SYSTEM=\"/dev/mmcblk0p1\"
+CXXFLAGS += -DCMDR_KEY_UP=SDLK_UP
+CXXFLAGS += -DCMDR_KEY_RIGHT=SDLK_RIGHT
+CXXFLAGS += -DCMDR_KEY_DOWN=SDLK_DOWN
+CXXFLAGS += -DCMDR_KEY_LEFT=SDLK_LEFT
+CXXFLAGS += -DCMDR_KEY_OPEN=SDLK_SPACE		# A
+CXXFLAGS += -DCMDR_KEY_PARENT=SDLK_LCTRL	# B
+CXXFLAGS += -DCMDR_KEY_OPERATION=SDLK_LSHIFT	# X
+CXXFLAGS += -DCMDR_KEY_SYSTEM=SDLK_LALT		# Y
+CXXFLAGS += -DCMDR_KEY_PAGEUP=SDLK_e		# L1 / L2 = SDLK_TAB
+CXXFLAGS += -DCMDR_KEY_PAGEDOWN=SDLK_t		# R1 / R2 = SDLK_BACKSPACE
+CXXFLAGS += -DCMDR_KEY_SELECT=SDLK_RCTRL	# SELECT
+CXXFLAGS += -DCMDR_KEY_TRANSFER=SDLK_RETURN	# START
+CXXFLAGS += -DCMDR_KEY_MENU=SDLK_ESCAPE		# MENU (added)
+CXXFLAGS += -DOSK_KEY_SYSTEM_IS_BACKSPACE=ON
+CXXFLAGS += -DSCREEN_WIDTH=640
+CXXFLAGS += -DSCREEN_HEIGHT=480
+CXXFLAGS += -DPPU_X=1.66666
+CXXFLAGS += -DPPU_Y=1.66666
+CXXFLAGS += -DSCREEN_BPP=32
+CXXFLAGS += -DFONTS='{"SourceCodePro-Semibold.ttf",16},{"SourceCodePro-Regular.ttf",16},{"/customer/app/wqy-microhei.ttc",16}'
+ifeq ($(PLATFORM),miyoomini)
+CXXFLAGS += -DMIYOOMINI
+endif
 
-OBJS:=main.o sdlutils.o resourceManager.o fileLister.o commander.o panel.o \
-      dialog.o window.o fileutils.o viewer.o keyboard.o
+RESDIR := res
+CXXFLAGS += -DRESDIR="\"$(RESDIR)\""
 
-DEPFILES:=$(patsubst %.o,$(OUTDIR)/%.d,$(OBJS))
+LINKFLAGS += -s
+LINKFLAGS += $(shell $(SDL_CONFIG) --libs) -lSDL_image -lSDL_ttf
+ifeq ($(PLATFORM),miyoomini)
+LINKFLAGS += -lmi_sys -lmi_gfx
+endif
+
+CMD := @
+SUM := @echo
+
+OUTDIR := ./output
+
+EXECUTABLE := $(OUTDIR)/DinguxCommander
+
+OBJS :=	main.o commander.o config.o dialog.o fileLister.o fileutils.o keyboard.o panel.o resourceManager.o \
+	screen.o sdl_ttf_multifont.o sdlutils.o text_edit.o utf8.o text_viewer.o image_viewer.o  window.o \
+	SDL_rotozoom.o
+ifeq ($(PLATFORM),miyoomini)
+OBJS += gfx.o
+endif
+
+DEPFILES := $(patsubst %.o,$(OUTDIR)/%.d,$(OBJS))
 
 .PHONY: all clean
 
@@ -39,6 +78,12 @@ $(EXECUTABLE): $(addprefix $(OUTDIR)/,$(OBJS))
 	$(CMD)$(CXX) $(LINKFLAGS) -o $@ $^
 
 $(OUTDIR)/%.o: src/%.cpp
+	@mkdir -p $(@D)
+	$(SUM) "  CXX     $@"
+	$(CMD)$(CXX) $(CXXFLAGS) -MP -MMD -MF $(@:%.o=%.d) -c $< -o $@
+	@touch $@ # Force .o file to be newer than .d file.
+
+$(OUTDIR)/%.o: src/%.c
 	@mkdir -p $(@D)
 	$(SUM) "  CXX     $@"
 	$(CMD)$(CXX) $(CXXFLAGS) -MP -MMD -MF $(@:%.o=%.d) -c $< -o $@
