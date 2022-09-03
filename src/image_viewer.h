@@ -25,6 +25,7 @@ class ImageViewer : public CWindow {
 
     std::string filename_;
     SDLSurfaceUniquePtr image_;
+    SDLSurfaceUniquePtr background_;
     bool ok_;
 };
 

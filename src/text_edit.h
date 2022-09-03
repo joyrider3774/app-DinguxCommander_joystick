@@ -62,6 +62,9 @@ class TextEdit {
 
     int border_width_x_, border_width_y_, padding_x_, padding_y_;
 
+    SDL_Color sdl_cursor_color_ = SDL_Color { COLOR_TEXT_NORMAL };
+    std::uint32_t cursor_color_;
+
     SDL_Color sdl_border_color_ = SDL_Color { COLOR_BORDER };
     std::uint32_t border_color_;
 

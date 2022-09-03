@@ -49,6 +49,7 @@ void TextEdit::prepareSurfaces()
 void TextEdit::prepareColors()
 {
     const auto *pixel_format = background_->format;
+    cursor_color_ = mapRGB(pixel_format, sdl_cursor_color_);
     border_color_ = mapRGB(pixel_format, sdl_border_color_);
     focus_border_color_ = mapRGB(pixel_format, sdl_focus_border_color_);
     bg_color_ = mapRGB(pixel_format, sdl_bg_color_);
@@ -125,7 +126,7 @@ void TextEdit::blitForeground(SDL_Surface &out, int x, int y) const
     cursor_rect.y = y + padding_y_ + border_width_y_;
     cursor_rect.w = 1;
     cursor_rect.h = foreground_rect_.h - 2 * padding_y_;
-    SDL_FillRect(&out, &cursor_rect, border_color_);
+    SDL_FillRect(&out, &cursor_rect, cursor_color_);
 }
 
 void TextEdit::blitFocus(SDL_Surface &out, int x, int y) const
