@@ -22,7 +22,7 @@ endif
 SDL_CONFIG := $(shell $(CXX) -print-sysroot)/usr/bin/sdl2-config
 CXXFLAGS += $(shell $(SDL_CONFIG) --cflags)
 
-CXXFLAGS += -DPATH_DEFAULT=\"/mnt/\"
+CXXFLAGS += -DPATH_DEFAULT=\"/mnt\"
 CXXFLAGS += -DFILE_SYSTEM=\"/dev/mmcblk0p7\"
 CXXFLAGS += -DCMDR_KEY_UP=SDLK_UP
 CXXFLAGS += -DCMDR_KEY_RIGHT=SDLK_RIGHT
