@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <iostream>
 
+#include "config.h"
 #include "def.h"
 #include "resourceManager.h"
 #include "screen.h"
@@ -103,6 +104,78 @@ int CWindow::execute()
                 }
                 case SDL_QUIT: return m_retVal;
 #ifdef USE_SDL2
+				case SDL_CONTROLLERBUTTONDOWN: {
+					SDL_utils::setMouseCursorEnabled(false);
+					SDL_Event ev;
+					ev.key.type = SDL_KEYDOWN;
+					ev.key.timestamp =  event.cbutton.timestamp;
+					ev.key.windowID = 0;
+					ev.key.state = SDL_PRESSED;
+					ev.key.repeat = 0;
+					ev.key.keysym.sym = 0;
+					ev.key.keysym.scancode = SDL_GetScancodeFromKey(ev.key.keysym.sym);
+					ev.key.keysym.mod = 0;
+					const auto &c = config();
+					switch (event.cbutton.button)
+					{
+						#if defined(RG35XX_PLUS_BATOCERA) 
+						case SDL_CONTROLLER_BUTTON_BACK:
+							ev.key.keysym.sym = c.key_menu;
+							break;
+						#endif
+						case SDL_CONTROLLER_BUTTON_Y:
+							ev.key.keysym.sym = c.key_system;
+							break;
+						case SDL_CONTROLLER_BUTTON_X:
+							ev.key.keysym.sym = c.key_operation;
+							break;
+						case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+							ev.key.keysym.sym = c.key_pageup;
+							break;
+						case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+							ev.key.keysym.sym = c.key_pagedown;
+							break;
+						case SDL_CONTROLLER_BUTTON_DPAD_UP:
+							ev.key.keysym.sym = c.key_up;
+							break;
+						case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+							ev.key.keysym.sym = c.key_down;
+							break;
+						case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+							ev.key.keysym.sym =  c.key_left;
+							break;
+						case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+							ev.key.keysym.sym = c.key_right;
+							break;
+						case SDL_CONTROLLER_BUTTON_A:
+							ev.key.keysym.sym = c.key_open;
+							break;
+						case SDL_CONTROLLER_BUTTON_B:
+							ev.key.keysym.sym = c.key_parent;
+							break;
+						case SDL_CONTROLLER_BUTTON_START:
+							ev.key.keysym.sym = c.key_transfer;
+							break;
+						#if defined(RG35XX_PLUS_BATOCERA) 
+						case SDL_CONTROLLER_BUTTON_GUIDE:
+						#else
+						case SDL_CONTROLLER_BUTTON_BACK:
+						#endif
+							ev.key.keysym.sym = c.key_select;
+							break;
+					}
+					ev.key.keysym.scancode = SDL_GetScancodeFromKey(ev.key.keysym.sym);
+					if(ev.key.keysym.sym != 0)
+					{
+						if (handleZoomTrigger(ev)) {
+							l_render = true;
+							break;
+						}
+						l_render = this->keyPress(ev) || l_render;
+						if (m_retVal) l_loop = false;
+					}
+					break;
+				}
                 case SDL_TEXTINPUT:
                 case SDL_TEXTEDITING:
                     l_render = textInput(event) || l_render;

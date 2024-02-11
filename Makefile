@@ -12,14 +12,18 @@ endif
 ifeq ($(PLATFORM),miyoomini)
 CXXFLAGS := -Os -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve+simd
 else
+ifeq ($(PLATFORM),RG35XX_PLUS_BATOCERA)
+CXXFLAGS := -Os
+else
 CXXFLAGS := -Os
 endif
+endif
 
-SDL_CONFIG := $(shell $(CXX) -print-sysroot)/usr/bin/sdl-config
+SDL_CONFIG := $(shell $(CXX) -print-sysroot)/usr/bin/sdl2-config
 CXXFLAGS += $(shell $(SDL_CONFIG) --cflags)
 
-CXXFLAGS += -DPATH_DEFAULT=\"/mnt/SDCARD\"
-CXXFLAGS += -DFILE_SYSTEM=\"/dev/mmcblk0p1\"
+CXXFLAGS += -DPATH_DEFAULT=\"/mnt/\"
+CXXFLAGS += -DFILE_SYSTEM=\"/dev/mmcblk0p7\"
 CXXFLAGS += -DCMDR_KEY_UP=SDLK_UP
 CXXFLAGS += -DCMDR_KEY_RIGHT=SDLK_RIGHT
 CXXFLAGS += -DCMDR_KEY_DOWN=SDLK_DOWN
@@ -39,16 +43,21 @@ CXXFLAGS += -DSCREEN_HEIGHT=480
 CXXFLAGS += -DPPU_X=1.66666
 CXXFLAGS += -DPPU_Y=1.66666
 CXXFLAGS += -DSCREEN_BPP=32
-CXXFLAGS += -DFONTS='{"SourceCodePro-Semibold.ttf",16},{"SourceCodePro-Regular.ttf",16},{"/customer/app/wqy-microhei.ttc",16}'
+CXXFLAGS += -DUSE_SDL2=1
+CXXFLAGS += -DFONTS='{"SourceCodePro-Semibold.ttf",16},{"SourceCodePro-Regular.ttf",16}'
 ifeq ($(PLATFORM),miyoomini)
 CXXFLAGS += -DMIYOOMINI
+endif
+
+ifeq ($(PLATFORM),RG35XX_PLUS_BATOCERA)
+CXXFLAGS += -DRG35XX_PLUS_BATOCERA -DUSE_SDL2_GAMECONTROLLER
 endif
 
 RESDIR := res
 CXXFLAGS += -DRESDIR="\"$(RESDIR)\""
 
 LINKFLAGS += -s
-LINKFLAGS += $(shell $(SDL_CONFIG) --libs) -lSDL_image -lSDL_ttf
+LINKFLAGS += $(shell $(SDL_CONFIG) --libs) -lSDL2_image -lSDL2_ttf -lSDL2_gfx
 ifeq ($(PLATFORM),miyoomini)
 LINKFLAGS += -lmi_sys -lmi_gfx
 endif
@@ -61,8 +70,7 @@ OUTDIR := ./output
 EXECUTABLE := $(OUTDIR)/DinguxCommander
 
 OBJS :=	main.o commander.o config.o dialog.o fileLister.o fileutils.o keyboard.o panel.o resourceManager.o \
-	screen.o sdl_ttf_multifont.o sdlutils.o text_edit.o utf8.o text_viewer.o image_viewer.o  window.o \
-	SDL_rotozoom.o
+	screen.o sdl_ttf_multifont.o sdlutils.o text_edit.o utf8.o text_viewer.o image_viewer.o  window.o 
 ifeq ($(PLATFORM),miyoomini)
 OBJS += gfx.o
 endif

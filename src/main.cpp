@@ -115,6 +115,23 @@ int main(int argc, char *argv[])
 
 #ifndef USE_SDL2
     SDL_EnableUNICODE(1);
+#else
+#ifdef USE_SDL2_GAMECONTROLLER
+	if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0)
+	{
+		std::cout  << "InitSubSystem(SDL_INIT_GAMECONTROLLER) Succes" << std::endl;
+		for (int i=0; i < SDL_NumJoysticks(); i++)
+			if(SDL_IsGameController(i))
+			{
+				SDL_GameControllerOpen(i);
+				SDL_GameControllerEventState(SDL_ENABLE);
+				std::cout  << "Joystick Detected!" << std::endl;
+				break;
+			}
+	}
+	else
+		std::cerr  << "InitSubSystem(SDL_INIT_GAMECONTROLLER) Failed" << std::endl;
+#endif
 #endif
 
     // Create instances
